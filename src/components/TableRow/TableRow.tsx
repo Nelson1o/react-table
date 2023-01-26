@@ -1,10 +1,6 @@
 import React from "react";
-import { TCommentsType } from "../redux/slices/commentSlice";
+import { TPropsType } from "./types";
 // import { Column, Cell, Table } from "@blueprintjs/table";
-
-type TPropsType = {
-	items: TCommentsType[];
-};
 
 const TableRow: React.FC<TPropsType> = React.memo(({ items }) => {
 	return (

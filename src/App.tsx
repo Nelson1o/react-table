@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
-import { getComments, TCommentsType } from "./redux/slices/commentSlice";
+import { getComments } from "./redux/slices/commentSlice";
 import { useAppDispatch, useStateSelector } from "./redux/store";
 
-import TableRow from "./components/TableRow";
-import Header from "./components/Header";
+import TableRow from "./components/TableRow/TableRow";
+import Header from "./components/Header/Header";
+import { filterItems } from "./helpers/helpers";
 
 import "./App.scss";
+import Loader from "./components/Loader";
 
 // import "normalize.css";
 // import "@blueprintjs/core/lib/css/blueprint.css";
@@ -14,35 +16,43 @@ import "./App.scss";
 
 const App: React.FC = () => {
 	const dispatch = useAppDispatch();
-	const { inputValue, comments, status } = useStateSelector((state) => state.comment);
+	const { inputValue, comments, status, currentIndex } = useStateSelector(
+		(state) => state.comment
+	);
 
 	useEffect(() => {
-		dispatch(getComments());
+		dispatch(getComments({ currentIndex }));
 	}, [dispatch]);
 
-	const filterItems = (inputValue: string, comments: TCommentsType[]) => {
-		return comments.filter(({ name, email, body }) => {
-			if (
-				name.toLowerCase().includes(inputValue.toLowerCase()) ||
-				email.toLowerCase().includes(inputValue.toLowerCase()) ||
-				body.toLowerCase().includes(inputValue.toLowerCase())
-			) {
-				return true;
-			}
-			return false;
-		});
+	const findMoreComments = () => {
+		dispatch(getComments({ currentIndex }));
 	};
 
-	const items = filterItems(inputValue, comments);
+	const idComments = new Set(comments.map((comment) => comment.id));
+	let items = comments.filter((comment) => {
+		if (idComments.has(comment.id)) {
+			idComments.delete(comment.id);
+			return true;
+		} else {
+			return false;
+		}
+	});
+
+	items = filterItems(inputValue, items);
 
 	return (
 		<div className="wrapper">
 			<Header inputValue={inputValue} />
 			<div className="main">
 				<div className="main_table">
-					{status === "loading" ? "Loading..." : <TableRow items={items} />}
+					{status === "loading" ? <Loader /> : <TableRow items={items} />}
 				</div>
 			</div>
+			{currentIndex !== 600 && (
+				<button className="btn" onClick={findMoreComments}>
+					Show more
+				</button>
+			)}
 		</div>
 	);
 };
